@@ -11,11 +11,14 @@
   text-decoration: none;
   border-radius: 5px;
 
- > Try it On
-  </a>
-  </div>
+> Try it On
+> </a>
 
-# toast-23
+  </div>
+  <br/>
+
+[![toast-23](toast-23-lib/assets/toast-23-logo.png)](toast-23-lib/assets/toast-23-logo.png)
+ # toast-23
 
 **A lightweight, accessible, fully-typed React toast notification library.**
 
@@ -41,7 +44,6 @@ Zero runtime dependencies · CSS animations · Dark mode · Promise tracking · 
 </div>
 <br/>
 
-
 ---
 
 ## Features
@@ -66,13 +68,13 @@ Zero runtime dependencies · CSS animations · Dark mode · Promise tracking · 
 
 ## Installation
 
-#### With pnpm
+#### With npm
 
 ```bash
 npm install toast-23
 ```
 
-#### With pnpm
+#### With yarn
 
 ```bash
 yarn add toast-23
@@ -136,6 +138,7 @@ function MyComponent() {
 ---
 
 ## Documentation
+
 Find the full API reference on [official documentation]()
 
 ## Testing
