@@ -10,16 +10,15 @@
   color: black;
   text-decoration: none;
   border-radius: 5px;
-
 > Try it On
-> </a>
+ </a>
 
   </div>
   <br/>
+<div>
+<img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="70"height="70" /><h2>toast-23</h2>
 
-<img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="70"height="70" /> 
-
-# toast-23
+</div>
 
 **A lightweight, accessible, fully-typed React toast notification library.**
 
