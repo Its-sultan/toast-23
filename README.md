@@ -1,9 +1,9 @@
 <div align="center">
 <div style= "position: relative; display:inline-block;">
- <img src="./toast-23-lib/assets/toast-23-image.png" alt="toast-23" width="1200" height="1000" />
+ <img src="./toast-23-lib/assets/toast-23-image.png" alt="toast-23" width="1900" height="1700" />
  <a href=""
   position: absolute;
-  bottom: 10px;
+  bottom: 2px;
   right: 10px;
   padding: 8px 16px;
   background:#f9850a;
@@ -15,7 +15,7 @@
 
   </div>
   <br/>
-<div>
+<div style="display: flex; align-items: center;" >
 <img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="70"height="70" /><h2>toast-23</h2>
 
 </div>
@@ -40,7 +40,7 @@ Zero runtime dependencies · CSS animations · Dark mode · Promise tracking · 
 
 <br />
 <div align="center">
-  <sub>Made by <a href="https://github.com/Its-sultan">Thabit S</a> 👨‍🍳</sub>
+  <sub>Made by <a href="https://github.com/Its-sultan">Thabit S</a> 🧑🏽‍💻</sub>
 </div>
 <br/>
 
