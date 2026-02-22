@@ -6,9 +6,8 @@
   <br/>
   <div align="center" >
 <img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="60"  style="vertical-align: middle;" />  
-  <span 
-    style="
-      font-size: 75px; 
+  <h2 
+    style=" 
       font-weight: 900; 
       margin-left: 12px; 
       vertical-align: middle;
@@ -16,7 +15,7 @@
     "
   >
     toast-23
-  </span>
+  </h2>
 
 </div>
 
