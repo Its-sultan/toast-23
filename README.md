@@ -1,6 +1,6 @@
 <div align="center">
 <div style= "position: relative; display:inline-block; max-width:100%;">
- <img src="./toast-23-lib/assets/toast-23-image.png" alt="toast-23 preview " style= " width:100%; max-width:1200px; height:auto; border-radius:12px;" />
+ <img src="./toast-23-lib/assets/toast-23-image.png" alt="toast-23 preview " style= " width:100%; max-width:1900px; height:auto; border-radius:12px;" />
  <a href=""
   position: absolute;
   bottom: 20px;
@@ -16,8 +16,8 @@
 
   </div>
   <br/>
-<div style="display: flex; align-items: center; justify-content:center; gap:10px;" >
-<img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="60" /><h2 style="margin: 0;">toast-23</h2>
+<div align="center" >
+<img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="60"  style="vertical-align: middle;" /><h2 style="margin-left: 10px;">toast-23</h2>
 
 </div>
 
