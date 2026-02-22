@@ -1,6 +1,6 @@
 <div align="center">
 <div style= "position: relative; display:inline-block;">
- <img src="./toast-23-lib/assets/toast-23-image.png" alt="toast-23" width="500" height="500" />
+ <img src="./toast-23-lib/assets/toast-23-image.png" alt="toast-23" width="1200" height="1000" />
  <a href=""
   position: absolute;
   bottom: 10px;
@@ -17,7 +17,7 @@
   </div>
   <br/>
 
-<img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="70"height="70" > 
+<img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="70"height="70" /> 
 
 # toast-23
 
