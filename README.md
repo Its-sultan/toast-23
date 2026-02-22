@@ -1,25 +1,24 @@
 <div align="center">
 <div style= "position: relative; display:inline-block; max-width:100%;">
  <img src="./toast-23-lib/assets/toast-23-image.png" alt="toast-23 preview " style= " width:100%; max-width:1900px; height:auto; border-radius:12px;" />
- <a href=""
-  position: absolute;
-  bottom: 20px;
-  right: 20px;
-  padding: 10px 20px;
-  background-color: #f9850a;
-  color: black;
-  text-decoration: none;
-  border-radius: 8px;
-  box-shadow:0 4px rgba(0,0,0,0.2);
-> Try it On
- </a>
 
   </div>
   <br/>
-<div align="center" >
-<img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="60"  style="vertical-align: middle;" /><h2 style="margin-left: 10px;">toast-23</h2>
+  <div align="center" >
+<img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="60"  style="vertical-align: middle;" />  
+  <span 
+    style="
+      font-size: 28px; 
+      font-weight: 700; 
+      margin-left: 12px; 
+      vertical-align: middle;
+    "
+  >
+    toast-23
+  </span>
 
 </div>
+
 
 **A lightweight, accessible, fully-typed React toast notification library.**
 
