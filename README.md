@@ -8,10 +8,11 @@
 <img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="60"  style="vertical-align: middle;" />  
   <span 
     style="
-      font-size: 28px; 
-      font-weight: 700; 
+      font-size: 75px; 
+      font-weight: 900; 
       margin-left: 12px; 
       vertical-align: middle;
+      margin-bottom:10px;
     "
   >
     toast-23
