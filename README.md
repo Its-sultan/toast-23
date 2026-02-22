@@ -1,22 +1,23 @@
 <div align="center">
-<div style= "position: relative; display:inline-block;">
- <img src="./toast-23-lib/assets/toast-23-image.png" alt="toast-23" width="1900" height="1700" />
+<div style= "position: relative; display:inline-block; max-width:100%;">
+ <img src="./toast-23-lib/assets/toast-23-image.png" alt="toast-23 preview " style= " width:100%; max-width:1200px; height:auto; border-radius:12px;" />
  <a href=""
   position: absolute;
-  bottom: 2px;
-  right: 10px;
-  padding: 8px 16px;
-  background:#f9850a;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  background-color: #f9850a;
   color: black;
   text-decoration: none;
-  border-radius: 5px;
+  border-radius: 8px;
+  box-shadow:0 4px rgba(0,0,0,0.2);
 > Try it On
  </a>
 
   </div>
   <br/>
-<div style="display: flex; align-items: center;" >
-<img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="70"height="70" /><h2>toast-23</h2>
+<div style="display: flex; align-items: center; justify-content:center; gap:10px;" >
+<img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="60" /><h2 style="margin: 0;">toast-23</h2>
 
 </div>
 
