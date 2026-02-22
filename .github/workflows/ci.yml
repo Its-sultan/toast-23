@@ -1,0 +1,100 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-test-build:
+    name: Lint, Test & Build
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18, 20, 22]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: toast-23-lib/package-lock.json
+
+      - name: Install dependencies
+        working-directory: toast-23-lib
+        run: npm ci
+
+      - name: Type check
+        working-directory: toast-23-lib
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        working-directory: toast-23-lib
+        run: npm test
+
+      - name: Build library
+        working-directory: toast-23-lib
+        run: npm run build
+
+      - name: Verify dist output
+        working-directory: toast-23-lib
+        run: |
+          test -f dist/index.mjs || (echo "Missing dist/index.mjs" && exit 1)
+          test -f dist/index.cjs || (echo "Missing dist/index.cjs" && exit 1)
+          test -f dist/index.d.ts || (echo "Missing dist/index.d.ts" && exit 1)
+          test -f dist/style.css || (echo "Missing dist/style.css" && exit 1)
+          echo "✓ All dist files present"
+
+  publish:
+    name: Publish to npm
+    needs: lint-test-build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    # Only run if the version in package.json changed
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: toast-23-lib/package-lock.json
+
+      - name: Install dependencies
+        working-directory: toast-23-lib
+        run: npm ci
+
+      - name: Build library
+        working-directory: toast-23-lib
+        run: npm run build
+
+      - name: Check if version already published
+        id: version-check
+        working-directory: toast-23-lib
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          echo "version=$PACKAGE_VERSION" >> $GITHUB_OUTPUT
+          if npm view toast-23@$PACKAGE_VERSION version 2>/dev/null; then
+            echo "already_published=true" >> $GITHUB_OUTPUT
+            echo "Version $PACKAGE_VERSION already published, skipping"
+          else
+            echo "already_published=false" >> $GITHUB_OUTPUT
+            echo "Version $PACKAGE_VERSION not yet published"
+          fi
+
+      - name: Publish to npm
+        if: steps.version-check.outputs.already_published == 'false'
+        working-directory: toast-23-lib
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
