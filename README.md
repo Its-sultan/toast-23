@@ -1,6 +1,6 @@
 <div align="center">
 <div style= "position: relative; display:inline-block;">
- <img src="./toast-23-lib/assets/toast-23-image.png" alt="toast-23" width="120" height="120" />
+ <img src="./toast-23-lib/assets/toast-23-image.png" alt="toast-23" width="500" height="500" />
  <a href=""
   position: absolute;
   bottom: 10px;
@@ -17,8 +17,9 @@
   </div>
   <br/>
 
-[![toast-23](toast-23-lib/assets/toast-23-logo.png)](toast-23-lib/assets/toast-23-logo.png){width=50 height=50}
- # toast-23
+<img src="./toast-23-lib/assets/toast-23-logo.png" alt ="toast-23-logo" width="70"height="70" > 
+
+# toast-23
 
 **A lightweight, accessible, fully-typed React toast notification library.**
 
