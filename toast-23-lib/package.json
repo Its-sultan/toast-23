@@ -19,7 +19,7 @@
         "default": "./dist/index.cjs"
       }
     },
-    "./styles.css": "./dist/style.css"
+    "./styles.css": "./dist/toast-23.css"
   },
   "files": [
     "dist",
