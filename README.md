@@ -31,9 +31,9 @@ Zero runtime dependencies · CSS animations · Dark mode · Promise tracking · 
 </div>
 <br/>
 <div align="center">
-<a href="https://toast-23.vercel.app/">Website</a> 
+<a href="https://toast-23.com/">Website</a> 
 <span> · </span>
-<a href="https://toast-23.vercel.app/docs">Documentation</a> 
+<a href="https://toast-23.com/docs">Documentation</a> 
 <!-- <span> · </span>
 <a href="https://twitter.com/">Twitter</a> -->
 </div>
@@ -139,7 +139,7 @@ function MyComponent() {
 
 ## Documentation
 
-Find the full API reference on [official documentation](https://toast-23.vercel.app/docs)
+Find the full API reference on [official documentation](https://toast-23.com/docs)
 
 ## Testing
 
