@@ -1,191 +1,209 @@
 /**
  * toast-23 — Standalone / Imperative API
  *
- * Used when you need toast notifications outside of React (Angular, Vue,
- * Svelte, vanilla JS, etc.). It internally bootstraps a minimal React root.
+ * For use outside React (Angular, Vue, Svelte, vanilla JS). Internally mounts
+ * a minimal React tree.
  *
- * ```ts
- * import { createToast23 } from "toast-23";
- *
- * const toast = createToast23({ position: "top-right" });
- *
- * toast.success("Saved!");
- * toast.error("Something went wrong");
- * toast.dismiss(id);
- *
- * // Cleanup when done (e.g. on app destroy)
- * toast.destroy();
- * ```
+ * Multiple `createToast23()` calls are safe and isolated — each instance gets
+ * its own Bridge component and resolver.
  */
 
 import * as React from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { Toast23Provider } from "./provider";
 import { useToast } from "./use-toast";
+import { injectStyles } from "./inject-styles";
+import { generateId } from "./utils";
 import type {
-  ToastPosition,
-  ToastOptions,
+  ConfirmOptions,
   PromiseOptions,
   ToastApi,
+  ToastHistoryEntry,
+  ToastLayout,
+  ToastDirection,
+  ToastPosition,
+  ToastOptions,
 } from "./types";
 import type { ReactNode } from "react";
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 export interface StandaloneOptions {
-  /** Where on screen toasts appear. @default "top-right" */
   position?: ToastPosition;
-  /** Max simultaneous toasts. @default 5 */
   maxVisible?: number;
-  /** Default auto-dismiss duration in ms. @default 5000 */
   duration?: number;
+  layout?: ToastLayout;
+  dir?: ToastDirection;
+  historySize?: number;
+  sound?: boolean;
+  fallbackToNotification?: boolean;
+  swipeEnabled?: boolean;
+  swipeThreshold?: number;
 }
 
 export interface StandaloneToastApi {
-  /** Shows a default toast. Returns the toast id. */
   (message: string | ReactNode, options?: ToastOptions): string;
-  /** Shows a success toast. */
   success: (message: string, options?: Omit<ToastOptions, "variant">) => string;
-  /** Shows an error toast. */
   error: (message: string, options?: Omit<ToastOptions, "variant">) => string;
-  /** Shows a warning toast. */
   warning: (message: string, options?: Omit<ToastOptions, "variant">) => string;
-  /** Shows an info toast. */
   info: (message: string, options?: Omit<ToastOptions, "variant">) => string;
-  /** Shows a loading toast. Returns the toast id for later update. */
   loading: (message: string, options?: Omit<ToastOptions, "variant">) => string;
-  /** Shows a custom toast with JSX content and no default styles. */
   custom: (
     content: ReactNode,
     options?: Omit<ToastOptions, "variant">,
   ) => string;
-  /** Track an async operation with loading → success / error transitions. */
   promise: <T>(
     promise: Promise<T> | (() => Promise<T>),
     options: PromiseOptions<T>,
     toastOptions?: ToastOptions,
   ) => Promise<T>;
-  /** Manually dismisses a toast by id. Omits id to dismiss all. */
+  confirm: (message: string, options?: ConfirmOptions) => Promise<boolean>;
   dismiss: (id?: string) => void;
-  /** Instantly removes a toast from DOM (no exit animation). Omits id to remove all. */
   remove: (id?: string) => void;
-  /** Unmounts the React root and removes the container from the DOM. */
+  dismissGroup: (group: string) => void;
+  removeGroup: (group: string) => void;
+  pauseAll: () => void;
+  resumeAll: () => void;
+  history: () => ReadonlyArray<ToastHistoryEntry>;
   destroy: () => void;
 }
 
-// ---------------------------------------------------------------------------
-// Bridge component — captures the useToast API and passes it out
-// ---------------------------------------------------------------------------
-
-let _resolveApi: ((api: ToastApi) => void) | null = null;
-
-function Bridge() {
-  const api = useToast();
-
-  // Resolves the promise on first render; update the ref on every render
-  // so the external caller always has the latest stable API reference.
-  React.useEffect(() => {
-    if (_resolveApi) {
-      _resolveApi(api);
-      _resolveApi = null;
-    }
-  }, [api]);
-
-  // Also stores on ref for synchronous access after first mount
-
-  return null;
+/**
+ * Per-instance Bridge — captures the React-side API via useToast() and writes
+ * it back into a closure-scoped resolver. No module globals → safe to call
+ * `createToast23()` multiple times.
+ */
+function makeBridge(setApi: (api: ToastApi) => void): React.FC {
+  return function Bridge() {
+    const api = useToast();
+    React.useEffect(() => {
+      setApi(api);
+    }, [api]);
+    return null;
+  };
 }
 
-// ---------------------------------------------------------------------------
-// Factory
-// ---------------------------------------------------------------------------
-
-/**
- *
- * Internally mounts a tiny React tree (provider + bridge) into a hidden
- * container. Returns a callable toast object with `.success()`, `.error()`, etc.
- *
- * Call `.destroy()` when your application unmounts to clean up.
- */
 export function createToast23(
   options: StandaloneOptions = {},
 ): StandaloneToastApi {
-  const { position = "top-right", maxVisible = 5, duration = 5000 } = options;
+  const {
+    position = "top-right",
+    maxVisible = 5,
+    duration = 5000,
+    layout = "default",
+    dir = "ltr",
+    historySize,
+    sound,
+    fallbackToNotification,
+    swipeEnabled,
+    swipeThreshold,
+  } = options;
 
-  // Creates a hidden container
+  injectStyles();
+
   const container = document.createElement("div");
   container.setAttribute("data-toast23-standalone", "");
-  container.style.display = "contents"; // invisible wrapper
+  container.style.display = "contents";
   document.body.appendChild(container);
 
-  //Waits for React to render before the API is available.
-  // Use of promise + queue approach so calls before mount are buffered.
   let root: Root | null = createRoot(container);
-
-  const apiReady = new Promise<ToastApi>((resolve) => {
-    _resolveApi = resolve;
-  });
-
-  // Queue for calls made before React has mounted
-  type QueuedCall = { method: string; args: unknown[] };
-  const queue: QueuedCall[] = [];
   let resolvedApi: ToastApi | null = null;
 
-  // Flushes queued calls once the API is ready
-  apiReady.then((api) => {
-    resolvedApi = api;
-    for (const call of queue) {
-      if (call.method === "__call__") {
-        (api as any)(...call.args);
-      } else {
-        (api as any)[call.method](...call.args);
-      }
-    }
-    queue.length = 0;
+  type QueuedCall = { method: string; args: unknown[] };
+  const queue: QueuedCall[] = [];
+
+  let readyResolve: (api: ToastApi) => void;
+  const apiReady = new Promise<ToastApi>((resolve) => {
+    readyResolve = resolve;
   });
 
-  // Mounts React tree
+  const setApi = (api: ToastApi) => {
+    resolvedApi = api;
+    readyResolve(api);
+    while (queue.length > 0) {
+      const call = queue.shift()!;
+      try {
+        if (call.method === "__call__") (api as any)(...call.args);
+        else (api as any)[call.method](...call.args);
+      } catch {
+        /* swallow */
+      }
+    }
+  };
+
+  const Bridge = makeBridge(setApi);
+
   root.render(
     React.createElement(
       Toast23Provider,
-      { position, maxVisible, duration } as any,
+      {
+        position,
+        maxVisible,
+        duration,
+        layout,
+        dir,
+        ...(historySize !== undefined && { historySize }),
+        ...(sound !== undefined && { sound }),
+        ...(fallbackToNotification !== undefined && { fallbackToNotification }),
+        ...(swipeEnabled !== undefined && { swipeEnabled }),
+        ...(swipeThreshold !== undefined && { swipeThreshold }),
+      } as any,
       React.createElement(Bridge),
     ),
   );
 
-  // Builds the proxy API
   const proxyCall = (method: string, ...args: unknown[]): any => {
-    if (resolvedApi) {
-      return (resolvedApi as any)[method](...args);
-    }
+    if (resolvedApi) return (resolvedApi as any)[method](...args);
     queue.push({ method, args });
-    return "queued";
+    return undefined;
+  };
+
+  // For the id-returning toast methods: when the React tree hasn't mounted yet,
+  // pre-generate the id, queue the call with it pinned, and return it. The
+  // flushed call carries the same id, so a follow-up `dismiss(id)` works even
+  // for toasts fired before mount.
+  const proxyToast = (
+    method: string,
+    content: string | ReactNode,
+    opts?: ToastOptions,
+  ): string => {
+    if (resolvedApi) return (resolvedApi as any)[method](content, opts);
+    const id = opts?.id ?? generateId();
+    queue.push({ method, args: [content, { ...opts, id }] });
+    return id;
   };
 
   const toast = ((message: string | ReactNode, opts?: ToastOptions) => {
     if (resolvedApi) return resolvedApi(message, opts);
-    queue.push({ method: "__call__", args: [message, opts] });
-    return "queued";
+    const id = opts?.id ?? generateId();
+    queue.push({ method: "__call__", args: [message, { ...opts, id }] });
+    return id;
   }) as StandaloneToastApi;
 
-  toast.success = (msg, opts) => proxyCall("success", msg, opts);
-  toast.error = (msg, opts) => proxyCall("error", msg, opts);
-  toast.warning = (msg, opts) => proxyCall("warning", msg, opts);
-  toast.info = (msg, opts) => proxyCall("info", msg, opts);
-  toast.loading = (msg, opts) => proxyCall("loading", msg, opts);
-  toast.custom = (content, opts) => proxyCall("custom", content, opts);
+  toast.success = (msg, opts) => proxyToast("success", msg, opts);
+  toast.error = (msg, opts) => proxyToast("error", msg, opts);
+  toast.warning = (msg, opts) => proxyToast("warning", msg, opts);
+  toast.info = (msg, opts) => proxyToast("info", msg, opts);
+  toast.loading = (msg, opts) => proxyToast("loading", msg, opts);
+  toast.custom = (content, opts) => proxyToast("custom", content, opts);
   toast.dismiss = (id?) => proxyCall("dismiss", id);
   toast.remove = (id?) => proxyCall("remove", id);
+  toast.dismissGroup = (group) => proxyCall("dismissGroup", group);
+  toast.removeGroup = (group) => proxyCall("removeGroup", group);
+  toast.pauseAll = () => proxyCall("pauseAll");
+  toast.resumeAll = () => proxyCall("resumeAll");
+  toast.history = () => (resolvedApi ? resolvedApi.history() : []);
 
   toast.promise = (promise, opts, toastOpts?) => {
     if (resolvedApi) return resolvedApi.promise(promise, opts, toastOpts);
-    // For promises, it needs to wait for the API
     return apiReady.then((api) => api.promise(promise, opts, toastOpts));
   };
 
+  toast.confirm = (message, opts?) => {
+    if (resolvedApi) return resolvedApi.confirm(message, opts);
+    return apiReady.then((api) => api.confirm(message, opts));
+  };
+
   toast.destroy = () => {
+    queue.length = 0;
     if (root) {
       root.unmount();
       root = null;
