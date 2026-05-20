@@ -1,19 +1,15 @@
 /**
  * toast-23 — Type Definitions
- *
- * All public and internal types used throughout the library.
  */
 
 import type { ReactNode } from "react";
 
 // ---------------------------------------------------------------------------
-// Public types (re-exported from index.ts)
+// Public types
 // ---------------------------------------------------------------------------
 
-/** Visual variant of a toast notification. */
 export type ToastVariant = "success" | "error" | "warning" | "info" | "default";
 
-/** Screen position where toasts are rendered. */
 export type ToastPosition =
   | "top-right"
   | "top-left"
@@ -22,83 +18,157 @@ export type ToastPosition =
   | "bottom-left"
   | "bottom-center";
 
-/** Options accepted when creating a toast. */
+/** Layout direction. Affects slide direction and progress-bar origin. */
+export type ToastDirection = "ltr" | "rtl";
+
+/** Color theme. `auto` follows `prefers-color-scheme`. */
+export type ToastTheme = "auto" | "light" | "dark";
+
+/** Action button rendered inside a toast. */
+export interface ToastAction {
+  label: ReactNode;
+  /** Called when clicked. Receives a `dismiss` helper so the toast can be closed. */
+  onClick: (dismiss: () => void) => void;
+  /** Whether clicking the button auto-dismisses the toast. @default true */
+  dismissOnClick?: boolean;
+  /** Optional className for custom styling. */
+  className?: string;
+}
+
 export interface ToastOptions {
-  /** Provide a fixed id to update an existing toast or prevent duplicates. */
   id?: string;
-  /** Optional heading displayed above the message. */
   title?: string;
-  /** Visual variant. Defaults to `"default"`. */
   variant?: ToastVariant;
-  /** Auto-dismiss duration in ms. `0` = persistent. Defaults to provider value. */
   duration?: number;
-  /** Screen position override. Defaults to provider value. */
   position?: ToastPosition;
-  /** Whether the user can manually dismiss the toast. Defaults to `true`. */
   dismissible?: boolean;
-  /** Delay in ms before removing from DOM after dismiss (for exit animation). @default 1000 */
+  /** Delay in ms before removing from DOM after dismiss. @default 300 */
   removeDelay?: number;
+  /** Action button (e.g. Undo). */
+  action?: ToastAction;
+  /** Secondary action button — typically used for cancel/decline. */
+  cancelAction?: ToastAction;
+  /** Called when the toast leaves state (dismissed manually, by timer, or programmatically). */
+  onDismiss?: () => void;
+  /** Group identifier — used by `dismissGroup` / `removeGroup`. */
+  group?: string;
+  /** Play a sound on display. Boolean uses default tone; string is variant override. @default false */
+  sound?: boolean;
+  /**
+   * Fallback to an OS notification when the document is hidden. The first time
+   * a hidden-tab toast fires with this enabled, the browser's notification
+   * permission prompt may be shown. @default false
+   */
+  fallbackToNotification?: boolean;
 }
 
-/** Options for `toast.promise()`. */
 export interface PromiseOptions<T> {
-  /** Message shown while the promise is pending. */
   loading: string;
-  /** Message on fulfillment. Can be a function receiving the resolved value. */
   success: string | ((data: T) => string);
-  /** Message on rejection. Can be a function receiving the error. */
   error: string | ((err: unknown) => string);
+  /**
+   * Optional progress reporter. Returns a function the caller invokes with a
+   * value 0..1 to update a determinate progress bar.
+   */
+  progress?: (report: (pct: number) => void) => void;
 }
 
-/**
- * The callable toast API returned by `useToast()`.
- *
- * Can be invoked directly — `toast("hi")` — or via variant helpers.
- */
+export interface ConfirmOptions {
+  /** Label for the confirm button. @default "Confirm" */
+  confirmLabel?: ReactNode;
+  /** Label for the cancel button. @default "Cancel" */
+  cancelLabel?: ReactNode;
+  /** Variant of the toast. @default "warning" */
+  variant?: ToastVariant;
+  /** Title shown above the message. */
+  title?: string;
+  /** Position override. */
+  position?: ToastPosition;
+}
+
+/** The callable toast API. */
 export interface ToastApi {
   (message: string | ReactNode, options?: ToastOptions): string;
   success: (message: string, options?: Omit<ToastOptions, "variant">) => string;
   error: (message: string, options?: Omit<ToastOptions, "variant">) => string;
   warning: (message: string, options?: Omit<ToastOptions, "variant">) => string;
   info: (message: string, options?: Omit<ToastOptions, "variant">) => string;
-  /** Show a loading toast. Returns the toast id for later update. */
   loading: (message: string, options?: Omit<ToastOptions, "variant">) => string;
-  /** Show a custom toast with JSX content and no default styles. */
   custom: (
     content: ReactNode,
     options?: Omit<ToastOptions, "variant">,
   ) => string;
-  /** Tracks an async operation with loading → success / error transitions. */
   promise: <T>(
     promise: Promise<T> | (() => Promise<T>),
     options: PromiseOptions<T>,
     toastOptions?: ToastOptions,
   ) => Promise<T>;
-  /** Manually dismisses a toast by id. Omits id to dismiss all. */
+  /** Confirmation toast — resolves with `true` (confirm) or `false` (cancel/dismiss). */
+  confirm: (message: string, options?: ConfirmOptions) => Promise<boolean>;
   dismiss: (id?: string) => void;
-  /** Instantly removes a toast from DOM (no exit animation). Omits id to remove all. */
   remove: (id?: string) => void;
+  /** Dismiss every toast in a group. */
+  dismissGroup: (group: string) => void;
+  /** Remove (instantly) every toast in a group. */
+  removeGroup: (group: string) => void;
+  /** Pauses every active toast's timer. */
+  pauseAll: () => void;
+  /** Resumes timers paused via `pauseAll`. */
+  resumeAll: () => void;
+  /** Read the history of dismissed toasts (newest first). */
+  history: () => ReadonlyArray<ToastHistoryEntry>;
 }
 
-/** Props for `<Toast23Provider>`. */
+/** Layout mode for the toast column. */
+export type ToastLayout = "default" | "stack";
+
 export interface Toast23ProviderProps {
   children: ReactNode;
-  /** Maximum number of simultaneously visible toasts. @default 5 */
   maxVisible?: number;
-  /** Default position on screen. @default "top-right" */
   position?: ToastPosition;
-  /** Default auto-dismiss duration in ms. @default 5000 */
   duration?: number;
+  /** Layout mode. `stack` collapses background toasts and expands on hover. @default "default" */
+  layout?: ToastLayout;
+  /** Layout direction. @default "ltr" */
+  dir?: ToastDirection;
+  /**
+   * Force a color theme. `"auto"` follows the OS `prefers-color-scheme` and
+   * any ancestor `.dark` class. Use `"dark"` or `"light"` when toasts portal
+   * outside the consumer's theme wrapper. @default "auto"
+   */
+  theme?: ToastTheme;
+  /** Where to render the toast portal. `null` = `document.body`. Pass an element for inline mode. */
+  target?: HTMLElement | null;
+  /** Number of dismissed toasts to retain in history. @default 50 */
+  historySize?: number;
+  /** Keyboard shortcut to focus the toast container. @default "F8" — set to null to disable */
+  focusShortcut?: string | null;
+  /** Swipe distance (px) past which a swipe dismisses the toast. @default 80 */
+  swipeThreshold?: number;
+  /** Whether swipe-to-dismiss is enabled. @default true */
+  swipeEnabled?: boolean;
+  /** Default `sound` option applied to every toast. @default false */
+  sound?: boolean;
+  /** Default `fallbackToNotification` for every toast. @default false */
+  fallbackToNotification?: boolean;
+}
+
+/** Single entry in the dismissed-toast history log. */
+export interface ToastHistoryEntry {
+  id: string;
+  message: string | ReactNode;
+  title?: string;
+  variant: ToastVariant;
+  dismissedAt: number;
+  group?: string;
 }
 
 // ---------------------------------------------------------------------------
-// Internal types (not exported from public API)
+// Internal types
 // ---------------------------------------------------------------------------
 
-/** Extended variant that includes the internal "loading" state. */
 export type InternalVariant = ToastVariant | "loading";
 
-/** Full internal representation of a toast stored in state. */
 export interface InternalToast {
   id: string;
   message: string | ReactNode;
@@ -107,46 +177,69 @@ export interface InternalToast {
   duration: number;
   position: ToastPosition;
   dismissible: boolean;
-  /** Delay in ms before DOM removal after dismiss (exit animation time). */
   removeDelay: number;
-  /** True once the provider has started the exit animation. */
   isExiting: boolean;
-  /** Epoch timestamp when the toast was created. */
   createdAt: number;
-  /** Increments on update — used to reset progress bar animation. */
   version: number;
-  /** When true, renders as a custom toast with no default styling. */
   isCustom?: boolean;
+  action?: ToastAction;
+  cancelAction?: ToastAction;
+  onDismiss?: () => void;
+  group?: string;
+  sound?: boolean;
+  fallbackToNotification?: boolean;
+  /** Determinate progress value 0..1, or undefined for indeterminate. */
+  progress?: number;
 }
 
-/** Reducer action types. */
+/**
+ * Per-provider external store backing the headless hook and DevTools.
+ * Created by each provider so multiple providers/instances stay isolated.
+ */
+export interface HeadlessStore {
+  publish: (next: ReadonlyArray<InternalToast>) => void;
+  getSnapshot: () => ReadonlyArray<InternalToast>;
+  subscribe: (listener: () => void) => () => void;
+}
+
 export type ToasterAction =
   | { type: "ADD"; toast: InternalToast }
   | { type: "UPDATE"; id: string; updates: Partial<InternalToast> }
   | { type: "DISMISS"; id?: string }
   | { type: "REMOVE"; id?: string }
-  | { type: "UPSERT"; toast: InternalToast };
+  | { type: "UPSERT"; toast: InternalToast }
+  | { type: "DISMISS_GROUP"; group: string }
+  | { type: "REMOVE_GROUP"; group: string };
 
-/** Shape of the internal context value. */
 export interface ToasterContextValue {
   addToast: (
     message: string | ReactNode,
-    options?: ToastOptions & { isCustom?: boolean },
+    options?: Omit<ToastOptions, "variant"> & {
+      variant?: InternalVariant;
+      isCustom?: boolean;
+    },
   ) => string;
-  updateToast: (
-    id: string,
-    updates: Partial<
-      Pick<
-        InternalToast,
-        "message" | "title" | "variant" | "duration" | "dismissible"
-      >
-    >,
-  ) => void;
+  updateToast: (id: string, updates: Partial<InternalToast>) => void;
   dismissToast: (id?: string) => void;
   removeToast: (id?: string) => void;
+  dismissGroup: (group: string) => void;
+  removeGroup: (group: string) => void;
+  pauseAll: () => void;
+  resumeAll: () => void;
+  history: () => ReadonlyArray<ToastHistoryEntry>;
+  /** Per-provider store powering `useToast23Headless` and `Toast23DevTools`. */
+  headlessStore: HeadlessStore;
   config: {
     maxVisible: number;
     position: ToastPosition;
     duration: number;
+    layout: ToastLayout;
+    dir: ToastDirection;
+    theme: ToastTheme;
+    swipeThreshold: number;
+    swipeEnabled: boolean;
+    sound: boolean;
+    fallbackToNotification: boolean;
   };
+  isPausedGlobally: boolean;
 }
