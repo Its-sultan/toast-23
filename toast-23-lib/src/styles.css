@@ -148,10 +148,7 @@
   right: 0;
 }
 
-/* ===== Toast Item =====
- * Border is drawn with an inset box-shadow rather than a real border so the
- * progress bar can sit flush against the bottom edge.
- */
+/* ===== Toast Item =====*/
 .toast23-item {
   pointer-events: auto;
   position: relative;
@@ -396,11 +393,7 @@
   margin-left: 0.25rem;
 }
 
-/* ===== Confirm layout =====
- * Action row wraps below the message and stretches, dismiss (×) is pulled
- * out of the flex flow and pinned to the top-right corner. Right padding
- * reserves space for the absolutely-positioned dismiss button.
- */
+/* ===== Confirm layout =====*/
 .toast23-item--confirm {
   flex-wrap: wrap;
   padding-right: 2.5rem;
