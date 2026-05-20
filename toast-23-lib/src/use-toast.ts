@@ -1,25 +1,19 @@
 /**
  * toast-23 — useToast Hook
- *
- * Returns a callable `ToastApi` object:
- *
- * ```ts
- * const toast = useToast();
- *
- * toast("Hello!");                       // default variant
- * toast.success("Done!");                // success variant
- * toast.error("Oops");                   // error variant
- * toast.promise(fetchData(), { ... });   // promise tracking
- * toast.dismiss(id);                     // manual dismiss
- * ```
  */
 
 "use client";
 
 import { useContext, useMemo } from "react";
 import { ToasterContext } from "./context";
-import type { ToastApi, ToastOptions, PromiseOptions } from "./types";
+import type {
+  ConfirmOptions,
+  PromiseOptions,
+  ToastApi,
+  ToastOptions,
+} from "./types";
 import type { ReactNode } from "react";
+import { generateId } from "./utils";
 
 export function useToast(): ToastApi {
   const ctx = useContext(ToasterContext);
@@ -32,42 +26,37 @@ export function useToast(): ToastApi {
   }
 
   return useMemo(() => {
-    // Base callable — toast("message", opts?)
     const toast = ((message: string | ReactNode, options?: ToastOptions) =>
       ctx.addToast(message, options)) as ToastApi;
 
-    // Variant shortcuts
     toast.success = (msg, opts) =>
       ctx.addToast(msg, { ...opts, variant: "success" });
-
     toast.error = (msg, opts) =>
       ctx.addToast(msg, { ...opts, variant: "error" });
-
     toast.warning = (msg, opts) =>
       ctx.addToast(msg, { ...opts, variant: "warning" });
+    toast.info = (msg, opts) =>
+      ctx.addToast(msg, { ...opts, variant: "info" });
 
-    toast.info = (msg, opts) => ctx.addToast(msg, { ...opts, variant: "info" });
-
-    // Loading shortcut
     toast.loading = (msg, opts) =>
       ctx.addToast(msg, {
         ...opts,
-        variant: "loading" as any,
+        variant: "loading",
         duration: opts?.duration ?? 0,
         dismissible: opts?.dismissible ?? false,
       });
 
-    // Custom toast — no default styles
     toast.custom = (content, opts) =>
       ctx.addToast(content, { ...opts, variant: "default", isCustom: true });
 
-    // Dismiss (with optional id — omit to dismiss all)
     toast.dismiss = (id?: string) => ctx.dismissToast(id);
-
-    // Remove instantly (with optional id — omit to remove all)
     toast.remove = (id?: string) => ctx.removeToast(id);
+    toast.dismissGroup = (group: string) => ctx.dismissGroup(group);
+    toast.removeGroup = (group: string) => ctx.removeGroup(group);
+    toast.pauseAll = () => ctx.pauseAll();
+    toast.resumeAll = () => ctx.resumeAll();
+    toast.history = () => ctx.history();
 
-    // Promise tracking (accepts Promise or () => Promise, optional 3rd arg for toast options)
     toast.promise = async <T>(
       promiseOrFn: Promise<T> | (() => Promise<T>),
       opts: PromiseOptions<T>,
@@ -75,10 +64,21 @@ export function useToast(): ToastApi {
     ): Promise<T> => {
       const id = ctx.addToast(opts.loading, {
         ...toastOpts,
-        variant: "loading" as any,
+        variant: "loading",
         duration: 0,
         dismissible: false,
-      } as ToastOptions);
+      });
+
+      // If a progress reporter is supplied, wire it up to updateToast.
+      if (opts.progress) {
+        try {
+          opts.progress((pct) => {
+            ctx.updateToast(id, { progress: Math.max(0, Math.min(1, pct)) });
+          });
+        } catch {
+          /* swallow */
+        }
+      }
 
       const promise =
         typeof promiseOrFn === "function" ? promiseOrFn() : promiseOrFn;
@@ -94,6 +94,7 @@ export function useToast(): ToastApi {
           variant: "success",
           duration: toastOpts?.duration ?? ctx.config.duration,
           dismissible: true,
+          progress: undefined,
         });
         return result;
       } catch (error) {
@@ -104,9 +105,50 @@ export function useToast(): ToastApi {
           variant: "error",
           duration: toastOpts?.duration ?? ctx.config.duration,
           dismissible: true,
+          progress: undefined,
         });
         throw error;
       }
+    };
+
+    toast.confirm = (message: string, opts?: ConfirmOptions) => {
+      return new Promise<boolean>((resolve) => {
+        const id = generateId();
+        let settled = false;
+        const settle = (answer: boolean) => {
+          if (settled) return;
+          settled = true;
+          resolve(answer);
+        };
+
+        ctx.addToast(message, {
+          id,
+          variant: opts?.variant ?? "warning",
+          title: opts?.title,
+          position: opts?.position,
+          duration: 0, // never auto-dismiss
+          dismissible: true,
+          action: {
+            label: opts?.confirmLabel ?? "Confirm",
+            onClick: (dismiss) => {
+              settle(true);
+              dismiss();
+            },
+            dismissOnClick: false,
+            className: "toast23-action--confirm",
+          },
+          cancelAction: {
+            label: opts?.cancelLabel ?? "Cancel",
+            onClick: (dismiss) => {
+              settle(false);
+              dismiss();
+            },
+            dismissOnClick: false,
+          },
+          // If user closes via X button or anything else, treat as cancel.
+          onDismiss: () => settle(false),
+        });
+      });
     };
 
     return toast;
@@ -115,6 +157,11 @@ export function useToast(): ToastApi {
     ctx.updateToast,
     ctx.dismissToast,
     ctx.removeToast,
+    ctx.dismissGroup,
+    ctx.removeGroup,
+    ctx.pauseAll,
+    ctx.resumeAll,
+    ctx.history,
     ctx.config.duration,
   ]);
 }
