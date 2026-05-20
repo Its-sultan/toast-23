@@ -9,15 +9,7 @@ import type {
   ToasterContextValue,
 } from "./types";
 
-// ---------------------------------------------------------------------------
-// Context — consumed by useToast() and internal components
-// ---------------------------------------------------------------------------
-
 export const ToasterContext = createContext<ToasterContextValue | null>(null);
-
-// ---------------------------------------------------------------------------
-// Reducer — pure state transitions for the toast queue
-// ---------------------------------------------------------------------------
 
 export function toasterReducer(
   state: InternalToast[],
@@ -50,27 +42,33 @@ export function toasterReducer(
           ? {
               ...t,
               ...action.updates,
-              // Bump version so progress bar restarts
               version: t.version + 1,
-              // If the toast was exiting, cancel exit on update
               isExiting: false,
             }
           : t,
       );
 
     case "DISMISS":
-      // Omit id → dismiss all
       if (!action.id) {
-        return state.map((t) => ({ ...t, isExiting: true }));
+        return state.map((t) => (t.isExiting ? t : { ...t, isExiting: true }));
       }
       return state.map((t) =>
-        t.id === action.id ? { ...t, isExiting: true } : t,
+        t.id === action.id && !t.isExiting ? { ...t, isExiting: true } : t,
       );
 
     case "REMOVE":
-      // Omit id → remove all instantly
       if (!action.id) return [];
       return state.filter((t) => t.id !== action.id);
+
+    case "DISMISS_GROUP":
+      return state.map((t) =>
+        t.group === action.group && !t.isExiting
+          ? { ...t, isExiting: true }
+          : t,
+      );
+
+    case "REMOVE_GROUP":
+      return state.filter((t) => t.group !== action.group);
 
     default:
       return state;
