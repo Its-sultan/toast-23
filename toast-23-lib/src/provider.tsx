@@ -271,7 +271,7 @@ export const Toast23Provider: React.FC<Toast23ProviderProps> = ({
     ],
   );
 
-  // Publish current state to this provider's headless store on every render.
+  // Publishes current state to this provider's headless store on every render.
   useEffect(() => {
     headlessStore.publish(toasts);
   }, [toasts, headlessStore]);
