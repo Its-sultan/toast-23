@@ -1,4 +1,37 @@
+# Dependencies
 node_modules/
+.pnpm-store/
+
+# Build output
 dist/
 *.tsbuildinfo
+
+# Test / coverage output
+coverage/
+vitest-out.txt
+
+# Environment & secrets (never commit these)
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Caches
+.vite/
+*.local
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+
+# OS files
 .DS_Store
+Thumbs.db
+desktop.ini
