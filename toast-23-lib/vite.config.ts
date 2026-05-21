@@ -3,14 +3,27 @@ import react from "@vitejs/plugin-react";
 import dts from "vite-plugin-dts";
 import { resolve } from "path";
 
+const isBuild = process.env.NODE_ENV === "production" || process.argv.includes("build");
+
 export default defineConfig({
   plugins: [
     react(),
-    dts({
-      rollupTypes: false,
-      tsConfigFilePath: "./tsconfig.json",
-    }),
+    // Only run vite-plugin-dts during library build, not while serving the playground
+    ...(isBuild
+      ? [
+          dts({
+            rollupTypes: false,
+            tsConfigFilePath: "./tsconfig.json",
+          }),
+        ]
+      : []),
   ],
+  // Dev server entry: the playground
+  root: isBuild ? undefined : resolve(__dirname),
+  server: {
+    open: "/playground/",
+    port: 5173,
+  },
   test: {
     globals: true,
     environment: "jsdom",
@@ -25,7 +38,6 @@ export default defineConfig({
       fileName: (format) => `index.${format === "es" ? "mjs" : "cjs"}`,
     },
     rollupOptions: {
-      // Peer dependencies — never bundled
       external: ["react", "react-dom", "react-dom/client", "react/jsx-runtime"],
       output: {
         globals: {
@@ -36,9 +48,7 @@ export default defineConfig({
         },
       },
     },
-    // Generate sourcemaps for debugging
     sourcemap: true,
-    // Ensure CSS is extracted to a file
     cssCodeSplit: false,
   },
 });
