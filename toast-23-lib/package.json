@@ -75,7 +75,8 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Its-sultan/toast-23.git"
+    "url": "git+https://github.com/Its-sultan/toast-23.git",
+    "directory": "toast-23-lib"
   },
   "homepage": "https://github.com/Its-sultan/toast-23",
   "bugs": {
