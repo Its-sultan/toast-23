@@ -1,8 +1,10 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/Its-sultan/toast-23/main/toast-23-lib/assets/toast-23-image.png" alt="toast-23" width="100%" style="border-radius: 12px;" />
-  <br /><br />
-  <img src="https://raw.githubusercontent.com/Its-sultan/toast-23/main/toast-23-lib/assets/toast-23-logo.png" alt="toast-23 logo" width="52" />
-  <h1>toast-23</h1>
+  <div style="position: relative; display:inline-block; max-width:100%;">
+    <img src="./toast-23-lib/assets/toast-23-image.png" alt="toast-23 preview" style="width:100%; max-width:1900px; height:auto; border-radius:12px;" />
+  </div>
+  <br />
+  <img src="./toast-23-lib/assets/toast-23-logo.png" alt="toast-23 logo" width="60" style="vertical-align: middle;" />
+  <h2 style="font-weight: 900; margin-bottom:10px;">toast-23</h2>
   <p>A lightweight, accessible, fully-typed React toast notification library.</p>
 
   [![npm version](https://img.shields.io/npm/v/toast-23.svg)](https://www.npmjs.com/package/toast-23)
