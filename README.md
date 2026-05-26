@@ -172,7 +172,7 @@ Opens an interactive playground at `http://localhost:5173`. Every feature is wir
 
 ## Changelog
 
-### v2.0.1
+### v2.0.0
 
 - **Independent timers** — adding or dismissing a toast no longer resets the countdown or progress bar of other visible toasts. Each toast runs its own timer.
 - **Isolated instances** — `useToast23Headless()` and `<Toast23DevTools />` now read from a per-provider store. Multiple `<Toast23Provider>` instances and `createToast23()` calls remain fully separated.
